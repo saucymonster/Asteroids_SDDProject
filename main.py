@@ -2,9 +2,9 @@ import pygame
 import os
 
 
-white = (255,255,255)
-red = (255, 0, 0)
-green = (153,204,0)
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (153, 204, 0)
 
 
 pygame.init()
@@ -18,25 +18,31 @@ pygame.display.set_icon(icon)
 
 redImg = pygame.image.load(
     os.path.join('Assets', 'Red.png'))
-orangImg = pygame.image.load(
-    os.path.join('Assets','Orange.png'))
 
-red_amongus = pygame.transform.scale(redImg, (40,50))
-orang_amongus = pygame.transform.flip(pygame.transform.scale(orangImg, (40,50)), True, False)
+red_amongus = pygame.transform.scale(redImg, (40, 50))
 
-speedX = 5
+speed = 5
 
-def draw_window(red, orang):
-    win.fill(white)
+
+def draw_window(red):
+    win.fill(WHITE)
     win.blit(red_amongus, (red.x, red.y))
-    win.blit(orang_amongus, (orang.x, orang.y))
     pygame.display.update()
 
 
+def movement(keypresses, red):
+    if keypresses[pygame.K_a]:
+        red.x -= speed
+    if keypresses[pygame.K_d]:
+        red.x += speed
+    if keypresses[pygame.K_w]:
+        red.y -= speed
+    if keypresses[pygame.K_s]:
+        red.y += speed
+
 
 def main(): 
-    red = pygame.Rect(100,250,40,50)
-    orang = pygame.Rect(400,250,40,50)
+    red = pygame.Rect(100, 250, 40, 50)
 
     clock = pygame.time.Clock()
     run = True
@@ -47,10 +53,10 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
 
-        keypresses = pygame. 
-        
+        keypresses = pygame.key.get_pressed()
+        movement(keypresses, red)
 
-        draw_window(red, orang)
+        draw_window(red)
 
 
 if __name__ == "__main__":
