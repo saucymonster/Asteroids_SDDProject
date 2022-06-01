@@ -1,0 +1,16 @@
+{
+    "Header": [
+    {
+     "Wii": "Very Yes",
+     "U": "Very No",
+     "Aliases": ["Nintendo", "Minecraft Command JSON Format"],
+     "Is_Present": true
+    },
+    {
+     "Wii": "DEEZ NUTS",
+     "U": "Rocked",
+     "Aliases": null,
+     "Is_Present": false
+    }
+   ]
+}
