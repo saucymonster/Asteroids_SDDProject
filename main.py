@@ -66,8 +66,9 @@ def main():
         clock.tick(50)
         
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
+            if event.type == pygame.QUIT or \
+                (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    run = False
 
         keypresses = pygame.key.get_pressed()
         red.move(keypresses)
@@ -77,4 +78,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
