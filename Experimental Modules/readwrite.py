@@ -14,17 +14,33 @@ if where_json('data.json'):
     pass
 
 else:
-    data = {
-        'user': input('User input: '),
-        'pass': input('Pass input: ')
+    new_data = {
+        'meme_collected': 0,
+        'deaths': 5,
+        'is_perfect_save': False
     }
     with open('data.json', 'w') as outfile:
         print("Does not exist, creating json file")
-        json.dump(data, outfile)
+        json.dump(new_data, outfile)
 
 
 with open('data.json') as its_raw:
     data = json.load(its_raw)
+
+print(data)
+
+for lucario in data['meme_collected']:
+    del meme_collected['is_perfect_save']
+
+with open('data.json') as fresh_data:
+    json.dump(data, fresh_data)
+
+#data = {
+#'meme_collected': input('How many memes collected?: '),
+#'deahts': input('How many times have you died?: ')
+#}
+#with open('data.json', 'w') as outfile:
+#    json.dump(data, outfile)
 
 #for Header in its_raw['header']:
     #del Header['Wii']
