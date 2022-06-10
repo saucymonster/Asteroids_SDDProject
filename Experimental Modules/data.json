@@ -3,12 +3,12 @@
     {
      "meme_collected": ["Nintendo", "Minecraft Command JSON Format"],
      "is_perfect_save": false,
-     "deaths": false,
+     "deaths": false
     },
     {
      "meme_collected": ["Oh No","Why are we still here, just to suffer?"],
      "is_perfect_save": false,
-     "deaths": true,
+     "deaths": true
     }
    ]
 }

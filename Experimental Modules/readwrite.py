@@ -29,11 +29,13 @@ with open('data.json') as its_raw:
 
 print(data)
 
-for lucario in data['meme_collected']:
-    del meme_collected['is_perfect_save']
+for lucario in data['lucario']:
+    del lucario['is_perfect_save']
 
-with open('data.json') as fresh_data:
-    json.dump(data, fresh_data)
+print(data)
+
+with open('WIIdata.json', 'w') as fresh_data:
+    json.dump(data, fresh_data, indent=2)
 
 #data = {
 #'meme_collected': input('How many memes collected?: '),
