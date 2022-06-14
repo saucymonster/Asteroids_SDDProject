@@ -1,8 +1,6 @@
 import pygame
 import os
 import random
-import math
-from threading import Timer
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -10,7 +8,8 @@ RED = (255, 0, 0)
 GREEN = (153, 204, 0)
 YELLOW = (255, 255, 0)
 debug = False
-alive = True
+FPS = 50
+level_num = 2
 
 pygame.init()
 pygame.font.init()
@@ -20,12 +19,14 @@ win_center = (win_width // 2, win_height // 2)
 win = pygame.display.set_mode((win_width, win_height))
 
 pygame.display.set_caption('HUGe man')
-icon = pygame.image.load(
-    os.path.join('Assets', 'Avatar.png'))
+icon = pygame.image.load(os.path.join('Assets', 'Avatar.png')).convert_alpha()
 pygame.display.set_icon(icon)
 
-player_Img = pygame.image.load(os.path.join('Assets', 'Red.png'))
-asteroid_Img = pygame.image.load(os.path.join('Assets', 'asteroid.png'))
+player_Img = pygame.image.load(os.path.join('Assets', 'Red.png')).convert_alpha()
+asteroid_Img = pygame.image.load(os.path.join('Assets', 'asteroid.png')).convert_alpha()
+alien_Img = pygame.image.load(os.path.join('Assets', 'ufo.png')).convert_alpha()
+laser_Img = pygame.image.load(os.path.join('Assets', 'laser.png')).convert_alpha()
+enemy_laser_Img = pygame.image.load(os.path.join('Assets', 'enemy_laser.png')).convert_alpha()
 
 sans = pygame.font.SysFont('Comic Sans MS', 30)
 HUD = pygame.font.Font(os.path.join('Assets', 'Symtext.ttf'), 20)
@@ -43,7 +44,7 @@ class Player(pygame.sprite.Sprite):
         self.health = 3
         self.score = 0
 
-    def move(self):
+    def update(self):
         keypresses = pygame.key.get_pressed()
 
         if self.rect.left > 0 and keypresses[pygame.K_a]:
@@ -54,6 +55,12 @@ class Player(pygame.sprite.Sprite):
             self.rect.y -= self.vel
         if self.rect.bottom < win_height and keypresses[pygame.K_s]:
             self.rect.y += self.vel
+
+    def shoot_laser(self):
+        l1 = Laser(*self.rect.midtop)
+        lasers.add(l1)
+        projectiles.add(l1)
+        all_sprites.add(l1)
 
     def draw(self):
         win.blit(self.image, self.rect)
@@ -94,15 +101,16 @@ class Asteroid(pygame.sprite.Sprite):
         if debug: print('target: ', self.target)
 
         if self.rect.x - self.target[0]:  # To prevent 0 division error
+
             # Determines how much to move asteroid in the x and y direction per frame to move it towards the target
             # point, while still maintaining the preset speed
             gradient = (self.target[1] - self.rect.y) / (self.rect.x - self.target[0])
 
-            self.vel_x = (self.vel / math.sqrt(1 + gradient**2)) if self.rect.x < self.target[0] else - \
-                (self.vel / math.sqrt(1 + gradient**2))
+            self.vel_x = (self.vel / (1 + gradient**2)**0.5) if self.rect.x < self.target[0] else - \
+                (self.vel / (1 + gradient**2)**0.5)
 
-            self.vel_y = -(self.vel * gradient) / math.sqrt(1 + gradient**2) if self.rect.x < self.target[0] else \
-                ((self.vel * gradient) / math.sqrt(1 + gradient**2))
+            self.vel_y = -(self.vel * gradient) / (1 + gradient**2) ** 0.5 if self.rect.x < self.target[0] else \
+                ((self.vel * gradient) / (1 + gradient**2)**0.5)
 
             if debug: print('m: ', gradient)
 
@@ -112,7 +120,7 @@ class Asteroid(pygame.sprite.Sprite):
 
         if debug: print('components: ', self.vel_x, self.vel_y)
 
-    def move(self):
+    def update(self):
         self.rect.x += self.vel_x
         self.rect.y += self.vel_y
 
@@ -123,95 +131,192 @@ class Asteroid(pygame.sprite.Sprite):
             pygame.draw.line(win, WHITE, (self.spawn_x, self.spawn_y), self.target)
 
 
+class Alien(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.transform.scale(alien_Img, (30, 30))
+        self.rect = self.image.get_rect()
+        self.spawn_range = 50, 200
+        self.rect.center = ((random.random() < 0.5) * (win_width-self.rect.width/2), random.randint(*self.spawn_range))
+        self.vel = 3 * (self.rect.x - win_center[0])/abs((self.rect.x - win_center[0]))
+        self.timer = 0
+        self.bullet_clock = 0.5
+
+    def enemy_laser(self):
+        l1 = EnemyLaser(*self.rect.midbottom)
+        enemy_lasers.add(l1)
+        enemies.add(l1)
+        projectiles.add(l1)
+        all_sprites.add(l1)
+
+    def update(self):
+        self.rect.x -= self.vel
+        self.timer += 1/clock.get_fps()
+        if self.timer >= self.bullet_clock:
+            self.enemy_laser()
+            self.timer = 0
+
+
+class Boss(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+
+
 class Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.rect = pygame.Rect(0, 0, 5, 10)
-        self.rect.center = (x, y)
+        self.image = pygame.transform.scale(laser_Img, (5, 10))
+        self.rect = self.image.get_rect()
+        self.rect.center = x, y
         self.vel = 10
 
-    def move(self):
+    def update(self):
         self.rect.y -= self.vel
 
-    def draw(self):
-        pygame.draw.rect(win, YELLOW, self.rect)
+
+class EnemyLaser(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.transform.scale(enemy_laser_Img, (5, 10))
+        self.image.set_colorkey(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = x, y
+        self.vel = 10
+
+    def update(self):
+        self.rect.y += self.vel
 
 
-red = Player()
+ship = Player()
 
 # Sprite groups
 asteroids = pygame.sprite.Group()
 lasers = pygame.sprite.Group()
+enemy_lasers = pygame.sprite.Group()
+aliens = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
 projectiles = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
-all_sprites.add(red)
+all_sprites.add(ship)
 
-spawn_asteroid = pygame.USEREVENT
+# Events
+next_lvl = pygame.USEREVENT
 regenerate = pygame.USEREVENT + 1
-
-pygame.time.set_timer(spawn_asteroid, 2000)
-pygame.time.set_timer(regenerate, 10000)
+spawn_asteroid = pygame.USEREVENT + 2
+spawn_alien = pygame.USEREVENT + 3
 
 clock = pygame.time.Clock()
-while red.health:
-    clock.tick(50)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT or \
-                (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-            pygame.quit()
-            exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_b:
-                A1 = Asteroid()
-                asteroids.add(A1)
-                projectiles.add(A1)
-                all_sprites.add(A1)
-            if event.key == pygame.K_SPACE and len(lasers) < red.ammo:
-                L1 = Laser(*red.rect.midtop)
-                lasers.add(L1)
-                projectiles.add(L1)
-                all_sprites.add(L1)
-        if event.type == spawn_asteroid:
-            A1 = Asteroid()
-            asteroids.add(A1)
-            projectiles.add(A1)
-            all_sprites.add(A1)
-        if event.type == regenerate:
-            red.health += 1 if red.health < 3 else 0
 
+
+def handle_regular_events(event):
+    global level_num
+    if event.type == pygame.QUIT or \
+            (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+        pygame.quit()
+        exit()
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_SPACE and len(lasers) < ship.ammo:
+            ship.shoot_laser()
+    if event.type == regenerate:
+        ship.health += 1 if ship.health < 3 else 0
+    if event.type == next_lvl:
+        level_num += 1
+
+
+def redraw_game_window():
     win.fill(BLACK)
 
-    for entity in all_sprites:
-        entity.draw()
-        entity.move()
+    all_sprites.update()
+    all_sprites.draw(win)
 
     for projectile in projectiles:
         if not pygame.Rect(0, 0, win_width, win_height).colliderect(projectile.rect):
             projectile.kill()
 
-    if pygame.sprite.spritecollide(red, asteroids, True):
-        red.health -= 1
-
-    win.blit(HUD.render(f'HP: {red.health}', False, WHITE), (10, 0))
-
-    score_rect = HUD.render(f'SCORE: {red.score}', False, WHITE).get_rect()
-    score_rect.right = win_width - 10
-    win.blit(HUD.render(f'SCORE: {red.score}', False, WHITE), score_rect)
-    pygame.display.update()
+    if pygame.sprite.spritecollide(ship, enemies, True):
+        ship.health -= 1
+        if not ship.health:
+            death()
 
     if pygame.sprite.groupcollide(lasers, asteroids, True, True):
-        red.score += 100
+        ship.score += 100
+
+    if pygame.sprite.groupcollide(lasers, aliens, True, True):
+        ship.score += 300
+
+    win.blit(HUD.render(f'HEALTH: {ship.health}', False, WHITE), (10, 0))
+
+    score_text = HUD.render(f'SCORE: {ship.score}', False, WHITE)
+    score_text_rect = score_text.get_rect()
+    score_text_rect.right = win_width - 10
+    win.blit(score_text, score_text_rect)
+
+    level_text = HUD.render(f'LEVEL {level_num}', False, WHITE)
+    level_text_rect = level_text.get_rect()
+    level_text_rect.bottomleft = 10, win_height
+    win.blit(level_text, level_text_rect)
+
+    objective_text = 1
+    if level_num == 1:
+        objective_text = HUD.render(f'SURVIVE {round(61 - pygame.time.get_ticks() / 1000)} SECS', False, WHITE)
+    elif level_num == 2:
+        objective_text = HUD.render(f'SURVIVE {round(61 - pygame.time.get_ticks() / 1000) + 60} SECS', False, WHITE)
+
+    objective_text_rect = objective_text.get_rect()
+    objective_text_rect.bottomright = win_width - 10, win_height
+    win.blit(objective_text, objective_text_rect)
+
+    pygame.display.update()
 
 
-for entity in all_sprites:
-    entity.kill()
+def death():
+    for entity1 in all_sprites:
+        entity1.kill()
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT or \
-                (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-            pygame.quit()
-            exit()
+    while True:
+        for event1 in pygame.event.get():
+            if event1.type == pygame.QUIT or \
+                    (event1.type == pygame.KEYDOWN and event1.key == pygame.K_ESCAPE):
+                pygame.quit()
+                exit()
         win.fill(RED)
         win.blit(game_over, (0, win_center[1]))
         pygame.display.update()
+
+
+pygame.time.set_timer(regenerate, 10000)
+pygame.time.set_timer(spawn_asteroid, 1000)
+pygame.time.set_timer(next_lvl, 60000, 1)
+while level_num == 1:
+    clock.tick(FPS)
+    for event in pygame.event.get():
+        handle_regular_events(event)
+        if event.type == spawn_asteroid:
+            A1 = Asteroid()
+            asteroids.add(A1)
+            projectiles.add(A1)
+            all_sprites.add(A1)
+            enemies.add(A1)
+
+    redraw_game_window()
+
+pygame.time.set_timer(spawn_alien, 5000)
+while level_num == 2:
+    clock.tick(FPS)
+    for event in pygame.event.get():
+        handle_regular_events(event)
+        if event.type == spawn_asteroid:
+            A1 = Asteroid()
+            asteroids.add(A1)
+            projectiles.add(A1)
+            enemies.add(A1)
+            all_sprites.add(A1)
+
+        if event.type == spawn_alien:
+            A1 = Alien()
+            aliens.add(A1)
+            projectiles.add(A1)
+            enemies.add(A1)
+            all_sprites.add(A1)
+
+    redraw_game_window()
