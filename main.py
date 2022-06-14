@@ -11,7 +11,7 @@ YELLOW = (255, 255, 0)
 
 # Values that will be used later in the code
 FPS = 50
-level_num = 2
+level_num = 1
 completion_time = None
 
 # Initialises pygame and font module for text
@@ -108,7 +108,8 @@ class Asteroid(pygame.sprite.Sprite):
         self.target = (random.randrange(target_square_left, target_square_right, 5),
                        random.randrange(target_square_top, target_square_bottom, 5))
 
-        if self.rect.x - self.target[0]:  # To prevent 0 division error
+        if self.rect.x - self.target[0]:  # Tests if the spawn point is directly above or below the target, to prevent 0
+            # division error
 
             # Determines how much to move asteroid in the x and y direction per frame to move it towards the target
             # point, while still maintaining the preset speed
