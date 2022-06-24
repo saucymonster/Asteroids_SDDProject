@@ -9,15 +9,21 @@ To move the player *(the spaceship)*,
 use **W, A, S, D** keys to move.
 
 Press **Space** to shoot a laser.  
-You can only have 3 lasers on screen at a time.
+The amount of lasers you can have onscreen depends on the difficulty.  
+**5** on easy  
+**3** on classic  
+**2** on hard  
 
-You have **3** health at the beginning. If an asteroid, an enemy, or one of their red lasers hits you, you will lose 1 health.  
+You have **3** health at the beginning *(5 if on easy)*. If an asteroid, an enemy, or one of their red lasers hits you, you will lose 1 health.  
 If you reach 0 health, the game's over!
 
-You regenerate 1 health every 7 seconds by default. This can be changed by changing the variable in  
-```
-self.regeneration_rate = 7
-```
-This is the recommended method of changing the difficulty.
+You regenerate health within a **7** in classic or **4** in easy.  
+Health regeneration is disabled on hard.
+
+Other factors changed by difficulty includes  
+- The spawn rate of the asteroids and aliens
+- Score multiplier
+
+Press **ESC** to quit at any time.
 
 ### THANKS FOR PLAYING

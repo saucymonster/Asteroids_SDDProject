@@ -2,6 +2,56 @@ import pygame
 import os
 import random
 
+def clear_cli():
+    os.system('cls' if os.name=='nt' else 'clear_cli')
+
+#Difficulty selection via CLI, can be disabled by setting the fixed_difficulty to true
+
+fixed_difficulty = False
+difficulty = 0
+while True:
+    if fixed_difficulty:
+        difficulty = 2
+        break
+    try:
+        print("WELCOME TO ASTEROIDS!\nPlease, select the difficulty options as below\n1 - Easy\n2 - Classic")
+        difficulty = int(input("3 - Hard\nYour Selection:"))
+        if (0 < difficulty <= 3):
+            pass
+            break
+        else:
+            raise ValueError
+    except ValueError:
+        pass
+        clear_cli()
+
+#Easy and Hard DIFFICULTY variables
+if difficulty == 1:
+    max_ammo = 5
+    max_player_health = 5
+    max_boss_health = 100
+    set_regen_rate = 4
+    spawn_timer_alien = 7500
+    spawn_timer_asteroid = 1350
+    score_multiplier = 1
+elif difficulty == 3:
+    max_ammo = 2
+    max_player_health = 3
+    max_boss_health = 300
+    set_regen_rate = 0
+    spawn_timer_alien = 3000
+    spawn_timer_asteroid = 550
+    score_multiplier = 4
+#SET VARIABLE FOR CLASSIC DIFFICULTY
+else:
+    max_ammo = 3
+    max_player_health = 3
+    max_boss_health = 200
+    set_regen_rate = 7
+    spawn_timer_alien = 5000
+    spawn_timer_asteroid = 1000
+    score_multiplier = 2
+
 # Pre-defines colour values, used later
 WHITE = (255, 255, 255)
 BLACK = (20, 20, 20)
@@ -43,14 +93,17 @@ game_over2 = HUD.render('[ESC] RELAUNCH TO RETRY', False, BLACK)
 game_over3 = HUD.render('AGAIN', False, BLACK)
 
 #load the sound effects
-shoot_sound = pygame.mixer.Sound(os.path.join('Assets', 'uuhhh.mp3'))
+shoot_sound = pygame.mixer.Sound(os.path.join('Assets', 'pop.ogg'))
 boom_sound = pygame.mixer.Sound(os.path.join('Assets', 'boom.ogg'))
-player_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'uuhhh1.mp3'))
-hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'hit.wav'))
+player_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'player_hurt.ogg'))
+boss_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'player_hurt1.ogg')) # Duplicate file due to Pygame volume mixer limitations
+hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'enemy_hurt.ogg'))
 
-bgm = pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'Assets','hey_music.mp3'))
+bgm = pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'Assets','bgm.ogg'))
 pygame.mixer.init()
+pygame.mixer.music.set_volume(0.15)
 pygame.mixer.music.play(-1)
+boss_hurt_sound.set_volume(0.2)
 
 # Class for the player
 class Player(pygame.sprite.Sprite):
@@ -60,11 +113,11 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = win_center
         self.vel = 3  # The player's speed
-        self.ammo = 3  # Amount of lasers that can be on screen at once
-        self.health = 3 # Adjusts maximum health at the beginning and regeneration
+        self.ammo = max_ammo  # Amount of lasers that can be on screen at once
+        self.health = max_player_health # Adjusts maximum health at the beginning and regeneration
         self.health_maximum = self.health # For use with the regeneration system
         self.score = 0  # Variable used for tracking score
-        self.regeneration_rate = 7  # Sets how often player health regenerates in seconds. If the game is too hard,
+        self.regeneration_rate = set_regen_rate  # Sets how often player health regenerates in seconds. If the game is too hard,
         # make this value lower to make it easier
 
     def update(self):
@@ -181,7 +234,7 @@ class Boss(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midbottom = (win_center[0], 0)
         self.vel = 2
-        self.max_health = 200
+        self.max_health = max_boss_health
         self.health = self.max_health
         self.frame_count = 0
         self.bullet_clock = 0.8
@@ -306,7 +359,7 @@ def handle_events():
 
         if event.type == regenerate:
             ship.health += 1 if ship.health < ship.health_maximum else 0
-        # If a regenerate event happens, adds 1 to the player's health if it is below 3
+        # If a regenerate event happens, adds 1 to the player's health if it is below the maximum
 
         if event.type == next_lvl:
             level_num += 1
@@ -346,25 +399,26 @@ def handle_collisions():
     # If the player has no health, call the death function
 
     if pygame.sprite.groupcollide(lasers, asteroids, True, True):
-        ship.score += 100
+        ship.score += 50 * score_multiplier
         pygame.mixer.Sound.play(boom_sound)
     # If a player-made laser collides with an asteroid, kill both entities and add 100 score.
     # Also plays an explosion sound
 
     if pygame.sprite.groupcollide(lasers, aliens, True, True):
-        ship.score += 300
+        ship.score += 150 * score_multiplier
         pygame.mixer.Sound.play(hurt_sound)
-    # If a player-made laser collides with an asteroid, kill both entities and add 100 score.
+    # If a player-made laser collides with an alien, kill both entities and add 300 score.
     # Also plays a different explosion sound
 
     if pygame.sprite.groupcollide(lasers, the_boss, True, False):  # If a player made laser collides with the boss, then
         for boss in the_boss:
-            boss.health -= 1 if not boss.spawning else 0  # If the boss isn't in its spawning phase, then remove 1
-            # health from it
+            boss.health -= 1 if not boss.spawning else 0  # Only removes boss health by one while not in spawning phase
+            pygame.mixer.Sound.play(boss_hurt_sound) # Quieter variant of the player hurt sound
 
             if boss.health == 0:  # If the boss' health is zero, then:
                 boss.kill()  # Kill the boss
-                ship.score += 10000  # Add 10,000 score
+                pygame.mixer.Sound.play(hurt_sound) # BOOM sound
+                ship.score += 5000 * score_multiplier # Add =10,000 score
                 level_num += 1  # Go to the next level
 
 
@@ -393,10 +447,10 @@ def redraw_game_window():
 
     objective_text = 1  # Pre-assigning objective_text variable to prevent a warning message from PyCharm
     if level_num == 1:
-        objective_text = HUD.render(f'SURVIVE {round(61 - pygame.time.get_ticks() / 1000)} SECS', False, WHITE)
+        objective_text = HUD.render(f'SURVIVE {round(30 - pygame.time.get_ticks() / 1000)} SECS', False, WHITE)
         # Render text showing the objective of level 1
     elif level_num == 2:
-        objective_text = HUD.render(f'SURVIVE {round(31 - pygame.time.get_ticks() / 1000 + 60)} SECS', False, WHITE)
+        objective_text = HUD.render(f'SURVIVE {round(30 - pygame.time.get_ticks() / 1000 + 60)} SECS', False, WHITE)
         # Render text showing the objective of level 2
     elif level_num == 3:
         objective_text = HUD.render(f'DEFEAT THE BOSS', False, WHITE)
@@ -451,10 +505,11 @@ def death():
         #win.blit(game_over3, (30, 180))
         pygame.display.update()
 
+if not ship.regeneration_rate == 0: #Disables regenerate if set to 0
+    pygame.time.set_timer(regenerate, ship.regeneration_rate * 1000)  # Sets a regenerate event to occur on a clock
 
-pygame.time.set_timer(regenerate, ship.regeneration_rate * 1000)  # Sets a regenerate event to occur on a clock
-pygame.time.set_timer(spawn_asteroid, 1000)  # Sets a spawn_asteroid event to occur every second
-pygame.time.set_timer(next_lvl, 60000, 1)  # Sets a next_lvl event to occur in a minute
+pygame.time.set_timer(spawn_asteroid, spawn_timer_asteroid)  # Sets a spawn_asteroid event to occur every second
+pygame.time.set_timer(next_lvl, 30000, 1)  # Sets a next_lvl event to occur in 30 seconds
 
 # Level 1 loop
 while level_num == 1:
@@ -463,8 +518,8 @@ while level_num == 1:
     handle_collisions()
     redraw_game_window()
 
-pygame.time.set_timer(spawn_alien, 5000)  # Sets a spawn_alien event to occur every 5 seconds
-pygame.time.set_timer(next_lvl, 30000, 1)  # Sets a next_lvl event to occur in 30 seconds
+pygame.time.set_timer(spawn_alien, spawn_timer_alien)  # Sets a spawn_alien event to occur every 5 seconds
+pygame.time.set_timer(next_lvl, 60000, 1)  # Sets a next_lvl event to occur in a minute
 
 # Level 2 loop
 while level_num == 2:
