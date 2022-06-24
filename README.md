@@ -14,13 +14,13 @@ The amount of lasers you can have onscreen depends on the difficulty.
 **3** on classic  
 **2** on hard  
 
-You have **3** health at the beginning *(5 if on easy)*. If an asteroid, an enemy, or one of their red lasers hits you, you will lose 1 health.  
+You have **3** *(5 if on easy)* health at the beginning . If an asteroid, an enemy, or one of their red lasers hits you, you will lose 1 health.  
 If you reach 0 health, the game's over!
 
-You regenerate health within a **7** in classic or **4** in easy.  
+Your health regenerates every **7 seconds** in classic or **4 seconds** in easy.  
 Health regeneration is disabled on hard.
 
-Other factors changed by difficulty includes  
+Other factors that can be changed by difficulty includes  
 - The spawn rate of the asteroids and aliens
 - Score multiplier
 
