@@ -6,7 +6,7 @@ You are a lone space-traveller, tasked with cleansing the cosmos of the evil ali
 
 ## How To Play
 To move the player *(the spaceship)*,  
-use **W, A, S, D** keys to move
+use **W, A, S, D** keys to move.
 
 Press **Space** to shoot a laser.  
 You can only have 3 lasers on screen at a time.
@@ -18,6 +18,6 @@ You regenerate 1 health every 7 seconds by default. This can be changed by chang
 ```
 self.regeneration_rate = 7
 ```
-This is the recommended method of changing the difficulty
+This is the recommended method of changing the difficulty.
 
 ### THANKS FOR PLAYING

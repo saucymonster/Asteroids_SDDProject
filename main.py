@@ -4,8 +4,8 @@ import random
 
 # Pre-defines colour values, used later
 WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
+BLACK = (20, 20, 20)
+RED = (255, 25, 25)
 GREEN = (153, 204, 0)
 YELLOW = (255, 255, 0)
 
@@ -49,7 +49,6 @@ player_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'uuhhh1.mp3'))
 hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'hit.wav'))
 
 bgm = pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'Assets','hey_music.mp3'))
-#pygame.mixer.music(os.path.join('Assets', 'hey_music.mp3'))
 pygame.mixer.init()
 pygame.mixer.music.play(-1)
 
@@ -62,7 +61,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = win_center
         self.vel = 3  # The player's speed
         self.ammo = 3  # Amount of lasers that can be on screen at once
-        self.health = 3
+        self.health = 3 # Adjusts maximum health at the beginning and regeneration
+        self.health_maximum = self.health # For use with the regeneration system
         self.score = 0  # Variable used for tracking score
         self.regeneration_rate = 7  # Sets how often player health regenerates in seconds. If the game is too hard,
         # make this value lower to make it easier
@@ -305,7 +305,7 @@ def handle_events():
                 ship.shoot_laser()
 
         if event.type == regenerate:
-            ship.health += 1 if ship.health < 3 else 0
+            ship.health += 1 if ship.health < ship.health_maximum else 0
         # If a regenerate event happens, adds 1 to the player's health if it is below 3
 
         if event.type == next_lvl:
@@ -431,8 +431,6 @@ def redraw_game_window():
 def death():
     #Stops Music and sounds
     pygame.mixer.music.fadeout(1000)
-    #pygame.mixer.stop()
-    #pygame.mixer.quit()
 
     # Kill all entities
     for entity in all_sprites:
