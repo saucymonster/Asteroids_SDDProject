@@ -4,8 +4,8 @@ import random
 
 # Pre-defines colour values, used later
 WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
+BLACK = (20, 20, 20)
+RED = (255, 25, 25)
 GREEN = (153, 204, 0)
 YELLOW = (255, 255, 0)
 
@@ -38,10 +38,19 @@ enemy_laser_Img = pygame.image.load(os.path.join('Assets', 'enemy_laser.png')).c
 
 # Sets up fonts and pre-renders text where possible
 HUD = pygame.font.Font(os.path.join('Assets', 'Symtext.ttf'), 20)
-game_over1 = HUD.render('YOU DIED!', False, BLACK)
-game_over2 = HUD.render('QUIT AND RELAUNCH TO TRY', False, BLACK)
+game_over1 = HUD.render('GAME OVER!', False, BLACK)
+game_over2 = HUD.render('[ESC] RELAUNCH TO RETRY', False, BLACK)
 game_over3 = HUD.render('AGAIN', False, BLACK)
 
+#load the sound effects
+shoot_sound = pygame.mixer.Sound(os.path.join('Assets', 'uuhhh.mp3'))
+boom_sound = pygame.mixer.Sound(os.path.join('Assets', 'boom.ogg'))
+player_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'uuhhh1.mp3'))
+hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'hit.wav'))
+
+bgm = pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'Assets','hey_music.mp3'))
+pygame.mixer.init()
+pygame.mixer.music.play(-1)
 
 # Class for the player
 class Player(pygame.sprite.Sprite):
@@ -52,7 +61,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = win_center
         self.vel = 3  # The player's speed
         self.ammo = 3  # Amount of lasers that can be on screen at once
-        self.health = 3
+        self.health = 3 # Adjusts maximum health at the beginning and regeneration
+        self.health_maximum = self.health # For use with the regeneration system
         self.score = 0  # Variable used for tracking score
         self.regeneration_rate = 7  # Sets how often player health regenerates in seconds. If the game is too hard,
         # make this value lower to make it easier
@@ -73,6 +83,7 @@ class Player(pygame.sprite.Sprite):
 
     # Function called to make the player shoot
     def shoot_laser(self):
+        pygame.mixer.Sound.play(shoot_sound) # Plays the shooting sound
         l1 = Laser(*self.rect.midtop)  # Creates a laser with coordinates of the middle of the top side of the player
         lasers.add(l1)  # Adds laser to 'lasers' sprite group
         projectiles.add(l1)  # Adds laser to 'projectiles' sprite group
@@ -151,6 +162,7 @@ class Alien(pygame.sprite.Sprite):
         enemies.add(l1)
         projectiles.add(l1)
         all_sprites.add(l1)
+        pygame.mixer.Sound.play(shoot_sound)
 
     # Function to move the alien and shoot every self.bullet_clock seconds
     def update(self):
@@ -260,7 +272,6 @@ spawn_boss = pygame.USEREVENT + 4
 # Clock object to keep FPS constant
 clock = pygame.time.Clock()
 
-
 # Function to handle events that happen every level
 def handle_events():
     global level_num
@@ -288,12 +299,13 @@ def handle_events():
             exit()
 
         # Shoots a laser from the player when the user presses space
+        # Plays the shooting sound
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and len(lasers) < ship.ammo:
                 ship.shoot_laser()
 
         if event.type == regenerate:
-            ship.health += 1 if ship.health < 3 else 0
+            ship.health += 1 if ship.health < ship.health_maximum else 0
         # If a regenerate event happens, adds 1 to the player's health if it is below 3
 
         if event.type == next_lvl:
@@ -317,13 +329,17 @@ def handle_collisions():
 
     if pygame.sprite.spritecollide(ship, enemies, True):
         ship.health -= 1
+        pygame.mixer.Sound.play(player_hurt_sound)
     # If the player collides with an enemy (which includes enemy-made lasers), subtract 1 health from the player,
     # and kill the enemy
+    # Plays the damage sound
 
     if pygame.sprite.spritecollideany(ship, the_boss):
         ship.rect.y += 10
         ship.health -= 1
+        pygame.mixer.Sound.play(player_hurt_sound)
     # If the player collides with the boss, then move the player down 10 pixels and subtract 1 health from the player
+    # Plays the damage sound
 
     if not ship.health:
         death()
@@ -331,11 +347,15 @@ def handle_collisions():
 
     if pygame.sprite.groupcollide(lasers, asteroids, True, True):
         ship.score += 100
-    # If a player-made laser collides with an asteroid, kill both entities and add 100 score
+        pygame.mixer.Sound.play(boom_sound)
+    # If a player-made laser collides with an asteroid, kill both entities and add 100 score.
+    # Also plays an explosion sound
 
     if pygame.sprite.groupcollide(lasers, aliens, True, True):
         ship.score += 300
-    # If a player-made laser collides with an asteroid, kill both entities and add 100 score
+        pygame.mixer.Sound.play(hurt_sound)
+    # If a player-made laser collides with an asteroid, kill both entities and add 100 score.
+    # Also plays a different explosion sound
 
     if pygame.sprite.groupcollide(lasers, the_boss, True, False):  # If a player made laser collides with the boss, then
         for boss in the_boss:
@@ -409,6 +429,9 @@ def redraw_game_window():
 
 # Function used when the player dies
 def death():
+    #Stops Music and sounds
+    pygame.mixer.music.fadeout(1000)
+
     # Kill all entities
     for entity in all_sprites:
         entity.kill()
@@ -425,7 +448,7 @@ def death():
         # Blits pre-rendered death text on the window, and tells the user their final score and how to try again
         win.blit(game_over1, (30, 100))
         win.blit(game_over2, (30, 150))
-        win.blit(game_over3, (30, 180))
+        #win.blit(game_over3, (30, 180))
         pygame.display.update()
 
 
