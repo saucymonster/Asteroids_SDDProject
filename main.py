@@ -3,7 +3,7 @@ import os
 import random
 
 def clear_cli():
-    os.system('cls' if os.name=='nt' else 'clear_cli')
+    os.system('cls' if os.name=='nt' else 'clear')
 
 #Difficulty selection via CLI, can be disabled by setting the fixed_difficulty to true
 
