@@ -14,9 +14,9 @@ while True:
         difficulty = 2
         break
     try:
-        print("WELCOME TO ASTEROIDS!\nPlease, select the difficulty options as below\n1 - Easy\n2 - Classic")
-        difficulty = int(input("3 - Hard\nYour Selection:"))
-        if (0 < difficulty <= 3):
+        print("WELCOME TO ASTEROIDS!\nPlease, select the difficulty options as below\n1 - Easy\n2 - Classic\n3 - Hard")
+        difficulty = int(input("4 - Very Hard\nYour Selection: "))
+        if (0 < difficulty <= 4):
             pass
             break
         else:
@@ -36,12 +36,23 @@ if difficulty == 1:
     score_multiplier = 1
 elif difficulty == 3:
     max_ammo = 2
-    max_player_health = 3
+    max_player_health = 5
     max_boss_health = 300
     set_regen_rate = 0
     spawn_timer_alien = 3000
-    spawn_timer_asteroid = 550
+    spawn_timer_asteroid = 650
     score_multiplier = 4
+
+# Even Harder (Hardcore)
+elif difficulty == 4:
+    max_ammo = 2
+    max_player_health = 1
+    max_boss_health = 500
+    set_regen_rate = 0
+    spawn_timer_alien = 2750
+    spawn_timer_asteroid = 500
+    score_multiplier = 12
+
 # SET VARIABLE FOR CLASSIC DIFFICULTY
 else:
     max_ammo = 3
@@ -114,7 +125,7 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(player_Img, (50, 50))  # Setting player dimensions and assigning an image
         self.rect = self.image.get_rect()
         self.rect.center = win_center
-        self.vel = 3  # The player's speed
+        self.vel = 4  # The player's speed
         self.ammo = max_ammo  # Amount of lasers that can be on screen at once
         self.health = max_player_health # Adjusts maximum health at the beginning and regeneration
         self.health_maximum = self.health # For use with the regeneration system
