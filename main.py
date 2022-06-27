@@ -5,7 +5,7 @@ import random
 def clear_cli():
     os.system('cls' if os.name=='nt' else 'clear')
 
-#Difficulty selection via CLI, can be disabled by setting the fixed_difficulty to true
+# Difficulty selection via CLI, can be disabled by setting the fixed_difficulty to true
 
 fixed_difficulty = False
 difficulty = 0
@@ -25,7 +25,7 @@ while True:
         pass
         clear_cli()
 
-#Easy and Hard DIFFICULTY variables
+# Easy and Hard DIFFICULTY variables
 if difficulty == 1:
     max_ammo = 5
     max_player_health = 5
@@ -42,7 +42,7 @@ elif difficulty == 3:
     spawn_timer_alien = 3000
     spawn_timer_asteroid = 550
     score_multiplier = 4
-#SET VARIABLE FOR CLASSIC DIFFICULTY
+# SET VARIABLE FOR CLASSIC DIFFICULTY
 else:
     max_ammo = 3
     max_player_health = 3
@@ -92,17 +92,19 @@ game_over1 = HUD.render('GAME OVER!', False, BLACK)
 game_over2 = HUD.render('[ESC] RELAUNCH TO RETRY', False, BLACK)
 game_over3 = HUD.render('AGAIN', False, BLACK)
 
-#load the sound effects
+# load the sound effects
 shoot_sound = pygame.mixer.Sound(os.path.join('Assets', 'pop.ogg'))
 boom_sound = pygame.mixer.Sound(os.path.join('Assets', 'boom.ogg'))
 player_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'player_hurt.ogg'))
 boss_hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'player_hurt1.ogg')) # Duplicate file due to Pygame volume mixer limitations
 hurt_sound = pygame.mixer.Sound(os.path.join('Assets', 'enemy_hurt.ogg'))
 
+# Load Music and adjust specific sounds
 bgm = pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'Assets','bgm.ogg'))
 pygame.mixer.init()
-pygame.mixer.music.set_volume(0.15)
+pygame.mixer.music.set_volume(0.45)
 pygame.mixer.music.play(-1)
+boom_sound.set_volume(0.8)
 boss_hurt_sound.set_volume(0.2)
 
 # Class for the player
