@@ -408,6 +408,8 @@ def handle_collisions():
     # Plays the damage sound
 
     if not ship.health:
+        boom_sound.set_volume(1.25)          # make the explosion more "dramatic"
+        pygame.mixer.Sound.play(boom_sound) # explodes the ship
         death()
     # If the player has no health, call the death function
 
@@ -431,7 +433,9 @@ def handle_collisions():
             if boss.health == 0:  # If the boss' health is zero, then:
                 boss.kill()  # Kill the boss
                 pygame.mixer.Sound.play(hurt_sound) # BOOM sound
-                ship.score += 5000 * score_multiplier # Add =10,000 score
+                boom_sound.set_volume(1.5)          # make the explosion more "dramatic"
+                pygame.mixer.Sound.play(boom_sound) # More boom sounds
+                ship.score += 5000 * score_multiplier # Add 10,000 score
                 level_num += 1  # Go to the next level
 
 
