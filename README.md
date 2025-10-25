@@ -1,6 +1,4 @@
-# *fgb <sub>first game back*</sub>	
-
-WELCOME TO ASTEROIDS!
+# WELCOME TO ASTEROIDS!
 
 You are a lone space-traveller, tasked with cleansing the cosmos of the evil aliens: the Jrbaxers. With enemies in and asteroids blocking your path, can you, armed with only your laser gun on your spaceship, survive to defeat Jrbatu, the Jrbaxer overlord?
 
